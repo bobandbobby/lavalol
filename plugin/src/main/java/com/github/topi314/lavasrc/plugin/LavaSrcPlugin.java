@@ -3,6 +3,7 @@ package com.github.topi314.lavasrc.plugin;
 import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
+import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.sliderkz.SliderKzSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
@@ -29,6 +30,7 @@ public class LavaSrcPlugin
   private YoutubeAudioSourceManager youtubeAudioSourceManager;
   private SpotifySourceManager spotify;
   private AppleMusicSourceManager appleMusic;
+  private DeezerAudioSourceManager deezer;
   private YandexMusicSourceManager yandexMusic;
   private FloweryTTSSourceManager flowerytts;
   private YoutubeSearchManager youtube;
@@ -41,6 +43,7 @@ public class LavaSrcPlugin
     SpotifyConfig spotifyConfig,
     TidalConfig tidalConfig,
     AppleMusicConfig appleMusicConfig,
+    DeezerConfig deezerConfig,
     YandexMusicConfig yandexMusicConfig,
     FloweryTTSConfig floweryTTSConfig
   ) {
@@ -88,6 +91,9 @@ public class LavaSrcPlugin
         appleMusic.setAlbumPageLimit(appleMusicConfig.getAlbumLoadLimit());
       }
     }
+    if (sourcesConfig.isDeezer()) {
+      this.deezer = new DeezerAudioSourceManager();
+    }
     if (sourcesConfig.isSliderkz()) {
       this.sliderkz = new SliderKzSourceManager();
     }
@@ -128,6 +134,10 @@ public class LavaSrcPlugin
       log.info("Registering Apple Music audio source manager...");
       manager.registerSourceManager(this.appleMusic);
     }
+    if (this.deezer != null) {
+      log.info("Registering Deezer audio source manager...");
+      manager.registerSourceManager(this.deezer);
+    }
     if (this.tidal != null) {
       log.info("Registering Tidal audio source manager...");
       manager.registerSourceManager(this.tidal);
@@ -166,6 +176,10 @@ public class LavaSrcPlugin
     if (this.appleMusic != null) {
       log.info("Registering Apple Music search manager...");
       manager.registerSearchManager(this.appleMusic);
+    }
+    if (this.deezer != null) {
+      log.info("Registering Deezer search manager...");
+      manager.registerSearchManager(this.deezer);
     }
     if (this.youtube != null) {
       log.info("Registering Youtube search manager...");
