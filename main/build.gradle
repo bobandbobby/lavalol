@@ -25,17 +25,6 @@ dependencies {
     compileOnly "org.slf4j:slf4j-api:2.0.7"
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            pom {
-                artifactId archivesBaseName
-                from components.java
-            }
-        }
-    }
-}
-
 kotlin {
     jvmToolchain(11)
 }
