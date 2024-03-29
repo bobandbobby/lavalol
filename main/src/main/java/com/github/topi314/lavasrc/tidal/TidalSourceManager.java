@@ -37,9 +37,10 @@ public class TidalSourceManager
         extends MirroringAudioSourceManager
         implements HttpConfigurable {
 
-    public static final Pattern URL_PATTERN = Pattern.compile(
-            "https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist)/(?<id>[a-zA-Z0-9\\-]+)"
-    );
+            public static final Pattern URL_PATTERN = Pattern.compile(
+                "https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?"
+            );
+            
 
     public static final String SEARCH_PREFIX = "tdsearch:";
     public static final String PUBLIC_API_BASE = "https://api.tidal.com/v1/";
