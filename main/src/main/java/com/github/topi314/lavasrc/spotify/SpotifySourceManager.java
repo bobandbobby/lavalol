@@ -512,7 +512,7 @@ public class SpotifySourceManager
 
       for (var value : page.get("items").values()) {
         var track = value.get("track");
-        if (track.isNull() || track.get("is_local").asBoolean(false)) {
+        if (track.isNull() || track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode")) { // https://github.com/topi314/LavaSrc/commit/d35f8934fe66b8a453dba1d09d6a1374e9ce8fed 
           continue;
         }
         tracks.add(this.parseTrack(track, preview));
