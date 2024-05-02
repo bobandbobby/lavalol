@@ -7,12 +7,15 @@
 
 BaldMan LavaSrc is a fork with a simple yet effective goal: provide an alternative method to interact with audio sources like Spotify and Apple Music, Deezer without the hassle of managing API keys or master keys 
 
+> [!TIP]  
+> When using Spotify with BaldMan LavaSrc, note that while the usual Spotify API enforces rate limits based on the application's client secret and ID, this fork uses anonymous tokens instead. This means you won't encounter rate limits due to client credentials, but keep in mind that you might still be rate limited by IP (429) if too many requests are sent. However, this method significantly increases the ability to accept Spotify links compared to using your client ID.
+
 ## Key Features
 
 - **Spotify :**  without the need for a client ID or secret.
 - **Apple Music :**  without requiring an API key.
-- **Deezer :**  without requiring an Master key.
-- **Tidal :**  without requiring an key. (private api not public)
+- **Deezer :**  without requiring a Master key.
+- **Tidal :**  without requiring a key. (private API not public)
 
 ## Getting Started
 
