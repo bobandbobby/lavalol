@@ -1,8 +1,10 @@
 # BaldMan LavaSrc
 
+**Important Warning:** DO NOT USE LAVASRC and BALDMAN LAVASRC at the same time. Mixing these plugins may lead to unexpected behavior or errors. Choose one plugin and ensure it meets your requirements before integrating it into your project.
+
 ## Purpose
 
-BaldMan LavaSrc is a fork with a simple yet effective goal: provide an alternative method to interact with audio sources like Spotify and Apple Music, Deezer without the hassle of managing API keys.
+BaldMan LavaSrc is a fork with a simple yet effective goal: provide an alternative method to interact with audio sources like Spotify and Apple Music, Deezer without the hassle of managing API keys. 
 
 ## Key Features
 
