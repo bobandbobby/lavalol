@@ -5,7 +5,7 @@
 
 ## Purpose
 
-BaldMan LavaSrc is a fork with a simple yet effective goal: provide an alternative method to interact with audio sources like Spotify and Apple Music, Deezer without the hassle of managing API keys. 
+BaldMan LavaSrc is a fork with a simple yet effective goal: provide an alternative method to interact with audio sources like Spotify and Apple Music, Deezer without the hassle of managing API keys or master keys 
 
 ## Key Features
 
