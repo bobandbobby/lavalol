@@ -1,6 +1,7 @@
 # BaldMan LavaSrc
 
-**Important Warning:** DO NOT USE LAVASRC and BALDMAN LAVASRC at the same time. Mixing these plugins may lead to unexpected behavior or errors. Choose one plugin and ensure it meets your requirements before integrating it into your project.
+> [!WARNING]  
+> **Important Warning:** DO NOT USE LAVASRC and BALDMAN LAVASRC at the same time. Mixing these plugins may lead to unexpected behavior or errors. Choose one plugin and ensure it meets your requirements before integrating it into your project.
 
 ## Purpose
 
