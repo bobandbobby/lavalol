@@ -284,11 +284,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var artworkUrl = json.get("cover_xl").text();
 		var author = json.get("contributors").values().get(0).get("name").text();
 
-		for (var track : json.get("tracks").get("data").values()) {
-			track.get("artist").put("picture_xl", json.get("artist").get("picture_xl"));
+		var tracks = this.getJson(PUBLIC_API_BASE + "/album/" + id + "/tracks?limit=10000");
+		for (var track : tracks.get("data").values()) {			
+		track.get("artist").put("picture_xl", json.get("artist").get("picture_xl"));
 		}
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), DeezerAudioPlaylist.Type.ALBUM, json.get("link").text(), artworkUrl, author, (int) json.get("nb_tracks").asLong(0));
+		return new DeezerAudioPlaylist(json.get("title").text(),
+				this.parseTracks(tracks, preview),
+				DeezerAudioPlaylist.Type.ALBUM,
+				json.get("link").text(),
+				artworkUrl,
+				author,
+				(int) json.get("nb_tracks").asLong(0)); // changes made from  https://github.com/topi314/LavaSrc/commit/1ebc9ea05fc7d4affcb8730a5aafd8c29357b0fa
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -308,9 +315,16 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("creator").get("name").text();
 
-		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks");
+		// This endpoint returns tracks with ISRC, unlike the other REST call
+		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks?limit=10000");
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), DeezerAudioPlaylist.Type.PLAYLIST, json.get("link").text(), artworkUrl, author, (int) json.get("nb_tracks").asLong(0));
+		return new DeezerAudioPlaylist(json.get("title").text(),
+				this.parseTracks(tracks, preview),
+				DeezerAudioPlaylist.Type.PLAYLIST,
+				json.get("link").text(),
+				artworkUrl,
+				author,
+				(int) json.get("nb_tracks").asLong(0));						// another change made via https://github.com/topi314/LavaSrc/commit/a7dfa2957a0d8331c1f14692e726c46d9d697012
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {

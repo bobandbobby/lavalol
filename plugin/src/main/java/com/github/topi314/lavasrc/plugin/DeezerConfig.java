@@ -8,21 +8,21 @@ import org.springframework.stereotype.Component;
 public class DeezerConfig {
 
     private String masterDecryptionKey;
-    private String format;
-
-    public String getFormat() {
-        return this.format;
-    }
+    private String arl;
 
     public String getMasterDecryptionKey() {
         return this.masterDecryptionKey;
+    }
+
+    public String getArl() {
+        return this.arl;
     }
 
     public void setMasterDecryptionKey(String masterDecryptionKey) {
         this.masterDecryptionKey = masterDecryptionKey;
     }
 
-    public void setFormat(String format) {
-        this.format = format;
+    public void setArl(String arl) {
+        this.arl = arl;
     }
 }

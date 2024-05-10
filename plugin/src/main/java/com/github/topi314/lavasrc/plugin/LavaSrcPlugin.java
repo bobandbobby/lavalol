@@ -7,7 +7,6 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
-import com.github.topi314.lavasrc.pandora.PandoraSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -35,7 +34,6 @@ public class LavaSrcPlugin
   private FloweryTTSSourceManager flowerytts;
   private YoutubeSearchManager youtube;
   private TidalSourceManager tidal;
-  private PandoraSourceManager pandora;
 
   public LavaSrcPlugin(
     LavaSrcConfig pluginConfig,
@@ -91,9 +89,9 @@ public class LavaSrcPlugin
         appleMusic.setAlbumPageLimit(appleMusicConfig.getAlbumLoadLimit());
       }
     }
-		if (sourcesConfig.isDeezer()) {
-			this.deezer = new DeezerAudioSourceManager(deezerConfig.getArl());
-		}
+    if (sourcesConfig.isDeezer()) {
+      this.deezer = new DeezerAudioSourceManager();
+    }
     if (sourcesConfig.isYandexMusic()) {
       this.yandexMusic =
         new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
@@ -130,10 +128,6 @@ public class LavaSrcPlugin
     if (this.appleMusic != null) {
       log.info("Registering Apple Music audio source manager...");
       manager.registerSourceManager(this.appleMusic);
-    }
-    if (this.pandora != null) {
-      log.info("Registering Pandora audio source manager...");
-      manager.registerSourceManager(this.pandora);
     }
     if (this.deezer != null) {
       log.info("Registering Deezer audio source manager...");

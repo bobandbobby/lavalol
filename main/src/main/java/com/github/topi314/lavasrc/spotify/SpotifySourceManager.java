@@ -235,123 +235,65 @@ public class SpotifySourceManager
     return null;
   }
 
-  public void obtainAccessToken() throws IOException {
-    var accessTokenUrl =
-      "https://open.spotify.com/get_access_token?reason=transport&productType=embed";
-    var request = new HttpGet(accessTokenUrl);
+public void obtainAccessToken() throws IOException {
     var json = HttpClientTools.fetchResponseAsJson(
-      this.httpInterfaceManager.getInterface(),
-      request
+        this.httpInterfaceManager.getInterface(),
+        new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=embed")
     );
-
     this.token = json.get("accessToken").text();
-    var expirationTimestampMs = json
-      .get("accessTokenExpirationTimestampMs")
-      .asLong(0);
-    this.tokenExpire = Instant.ofEpochMilli(expirationTimestampMs);
-  }
+    this.tokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
+}
 
-  public String getToken() throws IOException {
-    if (
-      this.token == null ||
-      this.tokenExpire == null ||
-      this.tokenExpire.isBefore(Instant.now())
-    ) {
-      this.obtainAccessToken();
+public String getToken() throws IOException {
+    if (this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())) {
+        obtainAccessToken();
     }
     return this.token;
-  }
+}
 
-  public JsonBrowser getJson(String uri) throws IOException {
+public JsonBrowser getJson(String uri) throws IOException {
     var request = new HttpGet(uri);
-    request.addHeader("Authorization", "Bearer " + this.getToken());
-    return LavaSrcTools.fetchResponseAsJson(
-      this.httpInterfaceManager.getInterface(),
-      request
-    );
-  }
+    request.addHeader("Authorization", "Bearer " + getToken());
+    return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+}
 
-  private AudioSearchResult getAutocomplete(
-    String query,
-    Set<AudioSearchResult.Type> types
-  ) throws IOException {
+private AudioSearchResult getAutocomplete(String query, Set<AudioSearchResult.Type> types) throws IOException {
     if (types.contains(AudioSearchResult.Type.TEXT)) {
-      throw new IllegalArgumentException(
-        "text is not a valid search type for Spotify"
-      );
+        throw new IllegalArgumentException("text is not a valid search type for Spotify");
     }
     if (types.isEmpty()) {
-      types = SEARCH_TYPES;
+        types = SEARCH_TYPES;
     }
-    var url =
-      API_BASE +
-      "search?q=" +
-      URLEncoder.encode(query, StandardCharsets.UTF_8) +
-      "&type=" +
-      types
-        .stream()
-        .map(AudioSearchResult.Type::getName)
-        .collect(Collectors.joining(","));
-    var json = this.getJson(url);
+    var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=" +
+            types.stream().map(AudioSearchResult.Type::getName).collect(Collectors.joining(","));
+    var json = getJson(url);
     if (json == null) {
-      return AudioSearchResult.EMPTY;
+        return AudioSearchResult.EMPTY;
     }
 
-    var albums = new ArrayList<AudioPlaylist>();
-    for (var album : json.get("albums").get("items").values()) {
-      albums.add(
-        new SpotifyAudioPlaylist(
-          album.get("name").text(),
-          Collections.emptyList(),
-          ExtendedAudioPlaylist.Type.ALBUM,
-          album.get("external_urls").get("spotify").text(),
-          album.get("images").index(0).get("url").text(),
-          album.get("artists").index(0).get("name").text(),
-          (int) album.get("total_tracks").asLong(0)
-        )
-      );
-    }
+    var tracks = parseTrackItems(json.get("tracks"), false);
+    var albums = parsePlaylistItems(json.get("albums"), ExtendedAudioPlaylist.Type.ALBUM);
+    var artists = parsePlaylistItems(json.get("artists"), ExtendedAudioPlaylist.Type.ARTIST);
+    var playlists = parsePlaylistItems(json.get("playlists"), ExtendedAudioPlaylist.Type.PLAYLIST);
 
-    var artists = new ArrayList<AudioPlaylist>();
-    for (var artist : json.get("artists").get("items").values()) {
-      artists.add(
-        new SpotifyAudioPlaylist(
-          artist.get("name").text() + "'s Top Tracks",
-          Collections.emptyList(),
-          ExtendedAudioPlaylist.Type.ARTIST,
-          artist.get("external_urls").get("spotify").text(),
-          artist.get("images").index(0).get("url").text(),
-          artist.get("name").text(),
-          null
-        )
-      );
-    }
+    return new BasicAudioSearchResult(tracks, albums, artists, playlists, new ArrayList<>());
+}
 
+private List<AudioPlaylist> parsePlaylistItems(JsonBrowser items, ExtendedAudioPlaylist.Type type) {
     var playlists = new ArrayList<AudioPlaylist>();
-    for (var playlist : json.get("playlists").get("items").values()) {
-      playlists.add(
-        new SpotifyAudioPlaylist(
-          playlist.get("name").text(),
-          Collections.emptyList(),
-          ExtendedAudioPlaylist.Type.PLAYLIST,
-          playlist.get("external_urls").get("spotify").text(),
-          playlist.get("images").index(0).get("url").text(),
-          playlist.get("owner").get("display_name").text(),
-          (int) playlist.get("tracks").get("total").asLong(0)
-        )
-      );
+    for (var playlist : items.get("items").values()) {
+        playlists.add(new SpotifyAudioPlaylist(
+                playlist.get("name").text(),
+                Collections.emptyList(),
+                type,
+                playlist.get("external_urls").get("spotify").text(),
+                playlist.get("images").index(0).get("url").text(),
+                playlist.get("owner").get("display_name").text(),
+                type == ExtendedAudioPlaylist.Type.PLAYLIST ? (int) playlist.get("tracks").get("total").asLong(0) : null
+        ));
     }
-
-    var tracks = this.parseTrackItems(json.get("tracks"), false);
-
-    return new BasicAudioSearchResult(
-      tracks,
-      albums,
-      artists,
-      playlists,
-      new ArrayList<>()
-    );
-  }
+    return playlists;
+}
 
   public AudioItem getSearch(String query, boolean preview) throws IOException {
     var json =
