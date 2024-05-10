@@ -235,27 +235,41 @@ public class SpotifySourceManager
     return null;
   }
 
-public void obtainAccessToken() throws IOException {
+  public void obtainAccessToken() throws IOException {
+    var accessTokenUrl =
+      "https://open.spotify.com/get_access_token?reason=transport&productType=embed";
+    var request = new HttpGet(accessTokenUrl);
     var json = HttpClientTools.fetchResponseAsJson(
-        this.httpInterfaceManager.getInterface(),
-        new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=embed")
+      this.httpInterfaceManager.getInterface(),
+      request
     );
-    this.token = json.get("accessToken").text();
-    this.tokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
-}
 
-public String getToken() throws IOException {
-    if (this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())) {
-        obtainAccessToken();
+    this.token = json.get("accessToken").text();
+    var expirationTimestampMs = json
+      .get("accessTokenExpirationTimestampMs")
+      .asLong(0);
+    this.tokenExpire = Instant.ofEpochMilli(expirationTimestampMs);
+  }
+
+  public String getToken() throws IOException {
+    if (
+      this.token == null ||
+      this.tokenExpire == null ||
+      this.tokenExpire.isBefore(Instant.now())
+    ) {
+      this.obtainAccessToken();
     }
     return this.token;
-}
+  }
 
-public JsonBrowser getJson(String uri) throws IOException {
+  public JsonBrowser getJson(String uri) throws IOException {
     var request = new HttpGet(uri);
-    request.addHeader("Authorization", "Bearer " + getToken());
-    return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
-}
+    request.addHeader("Authorization", "Bearer " + this.getToken());
+    return LavaSrcTools.fetchResponseAsJson(
+      this.httpInterfaceManager.getInterface(),
+      request
+    );
+  }
 
 private AudioSearchResult getAutocomplete(String query, Set<AudioSearchResult.Type> types) throws IOException {
     if (types.contains(AudioSearchResult.Type.TEXT)) {
