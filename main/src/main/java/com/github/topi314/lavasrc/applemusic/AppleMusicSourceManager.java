@@ -47,9 +47,8 @@ public class AppleMusicSourceManager
   public static final Pattern URL_PATTERN = Pattern.compile(
     "(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\p{L}\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?"
   );
-  public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile(
-    "const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\""
-  );
+  public static final Pattern TOKEN_PATTERN = Pattern.compile("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ[^\"]+");
+
   public static final String SEARCH_PREFIX = "amsearch:";
   public static final String PREVIEW_PREFIX = "amprev:";
   public static final long PREVIEW_LENGTH = 30000;
@@ -251,40 +250,30 @@ public class AppleMusicSourceManager
   }
 
   public void requestToken() throws IOException {
-    var request = new HttpGet("https://music.apple.com");
-    try (
-      var response = this.httpInterfaceManager.getInterface().execute(request)
-    ) {
-      var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-      var elements = document.select(
-        "script[type=module][src~=/assets/index.*.js]"
-      );
-      if (elements.isEmpty()) {
-        throw new IllegalStateException("Cannot find token script element");
-      }
+        var request = new HttpGet("https://music.apple.com");
+        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+            var document = Jsoup.parse(response.getEntity().getContent(), null, "");
+            var elements = document.select("script[type=module][src~=/assets/index.*.js]");
+            if (elements.isEmpty()) {
+                throw new IllegalStateException("Cannot find token script element");
+            }
 
-      for (var element : elements) {
-        var tokenScriptURL = element.attr("src");
-        request = new HttpGet("https://music.apple.com" + tokenScriptURL);
-        try (
-          var indexResponse = this.httpInterfaceManager.getInterface()
-            .execute(request)
-        ) {
-          var tokenScript = IOUtils.toString(
-            indexResponse.getEntity().getContent(),
-            StandardCharsets.UTF_8
-          );
-          var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
-          if (tokenMatcher.find()) {
-            this.token = tokenMatcher.group("token");
-            this.parseTokenData();
-            return;
-          }
+            for (var element : elements) {
+                var tokenScriptURL = element.attr("src");
+                request = new HttpGet("https://music.apple.com" + tokenScriptURL);
+                try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
+                    var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                    var tokenMatcher = TOKEN_PATTERN.matcher(tokenScript);
+                    if (tokenMatcher.find()) {
+                        this.token = tokenMatcher.group();
+                        this.parseTokenData();
+                        return;
+                    }
+                }
+            }
         }
-      }
+        throw new IllegalStateException("Cannot find token script url");
     }
-    throw new IllegalStateException("Cannot find token script url");
-  }
 
   public String getToken() throws IOException {
     if (
