@@ -747,7 +747,7 @@ public class AppleMusicSourceManager
     String artistArtwork
   ) {
     var attributes = json.get("attributes");
-	var trackUrl = URLDecoder.decode(attributes.get("url").text(), StandardCharsets.UTF_8); // sometimes apple music returns a url which is partially url encoded (only the album name part)
+		var trackUrl = URLDecoder.decode(attributes.get("url").text(), StandardCharsets.UTF_8); // sometimes apple music returns a url which is partially url encoded (only the album name part)
     var artistUrl = json.get("artistUrl").text();
     if (
       artistUrl != null &&
