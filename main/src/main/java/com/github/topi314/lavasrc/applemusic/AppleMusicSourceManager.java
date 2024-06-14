@@ -19,6 +19,7 @@ import com.sedmelluq.discord.lavaplayer.track.*;
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -746,7 +747,8 @@ public class AppleMusicSourceManager
     String artistArtwork
   ) {
     var attributes = json.get("attributes");
-    var trackUrl = attributes.get("url").text();
+		// sometimes apple music returns a url which is partially url encoded (only the album name part)
+		var trackUrl = URLDecoder.decode(attributes.get("url").text(), StandardCharsets.UTF_8); 
     var artistUrl = json.get("artistUrl").text();
     if (
       artistUrl != null &&
