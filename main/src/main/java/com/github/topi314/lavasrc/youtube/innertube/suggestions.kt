@@ -43,8 +43,8 @@ data class MusicResponsiveListItemRenderer(
                 data class Config(val pageType: Type) {
                     @Serializable
                     enum class Type {
-                        MUSIC_PAGE_TYPE_ALBUM,
-                        MUSIC_PAGE_TYPE_ARTIST
+                        MUSIC_PAGE_TYPE_ARTIST,
+                        MUSIC_PAGE_TYPE_PLAYLIST
                     }
                 }
             }
