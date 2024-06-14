@@ -93,6 +93,15 @@ public class LavaSrcPlugin
     if (sourcesConfig.isYandexMusic()) {
       this.yandexMusic =
         new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
+			if (yandexMusicConfig.getPlaylistLoadLimit() > 0) {
+				yandexMusic.setPlaylistLoadLimit(yandexMusicConfig.getPlaylistLoadLimit());
+			}
+			if (yandexMusicConfig.getAlbumLoadLimit() > 0) {
+				yandexMusic.setAlbumLoadLimit(yandexMusicConfig.getAlbumLoadLimit());
+			}
+			if (yandexMusicConfig.getArtistLoadLimit() > 0) {
+				yandexMusic.setArtistLoadLimit(yandexMusicConfig.getArtistLoadLimit());
+			}
     }
     if (sourcesConfig.isFloweryTTS()) {
       this.flowerytts =
