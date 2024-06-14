@@ -56,9 +56,6 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
-      playlistLoadLimit: 1 # The number of pages at 100 tracks each
-      albumLoadLimit: 1 # The number of pages at 50 tracks each
-      artistLoadLimit: 1 # The number of pages at 10 tracks each
     flowerytts:
       voice: "default voice" # (case-sensitive) get default voice here https://flowery.pw/docs/flowery/tts-voices-v-1-tts-voices-get
       translate: false # whether to translate the text to the native language of voice

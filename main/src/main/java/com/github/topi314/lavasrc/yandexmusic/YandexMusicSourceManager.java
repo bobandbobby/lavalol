@@ -117,19 +117,22 @@ public class YandexMusicSourceManager
           PUBLIC_API_BASE +
           "/search?text=" +
           URLEncoder.encode(query, StandardCharsets.UTF_8) +
-          "&type=all&page=0"
+          "&type=track&page=0"
         );
-    if (json.isNull() || json.get("result").isNull()) {
+    if (json.isNull() || json.get("result").get("tracks").isNull()) {
       return AudioReference.NO_TRACK;
     }
-    var albums = this.parseAlbums(json.get("result").get("albums").get("results"));
-    var artists = this.parseArtists(json.get("result").get("artists").get("results"));
-    var tracks = this.parseTracks(json.get("result").get("tracks").get("results"));
-
-    if (albums.isEmpty() && artists.isEmpty() && tracks.isEmpty()) {
+    var tracks =
+      this.parseTracks(json.get("result").get("tracks").get("results"));
+    if (tracks.isEmpty()) {
       return AudioReference.NO_TRACK;
     }
-    return new YandexSearchResult(albums, artists, tracks);
+    return new BasicAudioPlaylist(
+      "Yandex Music Search: " + query,
+      tracks,
+      null,
+      true
+    );
   }
 
   private AudioItem getAlbum(String id) throws IOException {
@@ -281,14 +284,14 @@ public class YandexMusicSourceManager
     }
 
     var trackIds = json
-      .get("result")
-      .values()
-      .stream()
-      .map(track -> track.get("id").text())
-      .collect(Collectors.joining(","));
+        .get("result")
+        .values()
+        .stream()
+        .map(track -> track.get("id").text())
+        .collect(Collectors.joining(","));
 
     var trackDetailsJson =
-      this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIds);
+        this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIds);
 
     var tracksJson = trackDetailsJson.get("result");
     var tracks = new ArrayList<AudioTrack>();
@@ -346,47 +349,6 @@ public class YandexMusicSourceManager
       }
     }
     return tracks;
-  }
-
-  private List<YandexMusicAlbum> parseAlbums(JsonBrowser json) {
-    var albums = new ArrayList<YandexMusicAlbum>();
-    for (var album : json.values()) {
-      var parsedAlbum = this.parseAlbum(album);
-      if (parsedAlbum != null) {
-        albums.add(parsedAlbum);
-      }
-    }
-    return albums;
-  }
-
-  private List<YandexMusicArtist> parseArtists(JsonBrowser json) {
-    var artists = new ArrayList<YandexMusicArtist>();
-    for (var artist : json.values()) {
-      var parsedArtist = this.parseArtist(artist);
-      if (parsedArtist != null) {
-        artists.add(parsedArtist);
-      }
-    }
-    return artists;
-  }
-
-  private YandexMusicAlbum parseAlbum(JsonBrowser json) {
-    var id = json.get("id").text();
-    var title = json.get("title").text();
-    var coverUri = json.get("coverUri").text();
-    var artist = json.get("artists").index(0).get("name").text();
-    var url = "https://music.yandex.ru/album/" + id;
-
-    return new YandexMusicAlbum(id, title, this.formatCoverUri(coverUri), artist, url);
-  }
-
-  private YandexMusicArtist parseArtist(JsonBrowser json) {
-    var id = json.get("id").text();
-    var name = json.get("name").text();
-    var coverUri = json.get("cover").get("uri").text();
-    var url = "https://music.yandex.ru/artist/" + id;
-
-    return new YandexMusicArtist(id, name, this.formatCoverUri(coverUri), url);
   }
 
   private AudioTrack parseTrack(JsonBrowser json) {
