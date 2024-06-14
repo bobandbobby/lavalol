@@ -36,6 +36,9 @@ public class YandexMusicSourceManager
   public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile(
     "(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?"
   );
+  public static final Pattern URL_USER_TRACKS_PATTERN = Pattern.compile(
+    "(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/tracks/?"
+  );
   public static final String SEARCH_PREFIX = "ymsearch:";
   public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
 
@@ -96,6 +99,11 @@ public class YandexMusicSourceManager
         var userId = matcher.group("identifier");
         var playlistId = matcher.group("identifier2");
         return this.getPlaylist(userId, playlistId);
+      }
+      matcher = URL_USER_TRACKS_PATTERN.matcher(reference.identifier);
+      if (matcher.find()) {
+        var userId = matcher.group("identifier");
+        return this.getUserTracks(userId);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -257,6 +265,56 @@ public class YandexMusicSourceManager
       ExtendedAudioPlaylist.Type.PLAYLIST,
       json.get("result").get("url").text(),
       this.formatCoverUri(coverUri),
+      author
+    );
+  }
+
+  private AudioItem getUserTracks(String userString) throws IOException {
+    var json =
+      this.getJson(
+          PUBLIC_API_BASE + "/users/" + userString + "/tracks"
+        );
+
+    if (
+      json.isNull() ||
+      json.get("result").isNull() ||
+      json.get("result").values().isEmpty()
+    ) {
+      return AudioReference.NO_TRACK;
+    }
+
+    var trackIds = json
+        .get("result")
+        .values()
+        .stream()
+        .map(track -> track.get("id").text())
+        .collect(Collectors.joining(","));
+
+    var trackDetailsJson =
+        this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIds);
+
+    var tracksJson = trackDetailsJson.get("result");
+    var tracks = new ArrayList<AudioTrack>();
+
+    for (var track : tracksJson.values()) {
+      var parsedTrack = this.parseTrack(track);
+      if (parsedTrack != null) {
+        tracks.add(parsedTrack);
+      }
+    }
+
+    if (tracks.isEmpty()) {
+      return AudioReference.NO_TRACK;
+    }
+
+    var author = userString;
+
+    return new YandexMusicAudioPlaylist(
+      author + "'s Tracks",
+      tracks,
+      ExtendedAudioPlaylist.Type.PLAYLIST,
+      null,
+      null,
       author
     );
   }
