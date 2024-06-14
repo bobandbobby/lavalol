@@ -6,15 +6,14 @@ import java.util.List;
 
 public class YandexMusicAudioPlaylist extends ExtendedAudioPlaylist {
 
-public YandexMusicAudioPlaylist(
+  public YandexMusicAudioPlaylist(
     String name,
     List<AudioTrack> tracks,
     ExtendedAudioPlaylist.Type type,
-    String url,
+    String identifier,
     String artworkURL,
-    String author,
-    Integer totalTracks
-) {
-    super(name, tracks, type, url, artworkURL, author, totalTracks);
+    String author
+  ) {
+    super(name, tracks, type, identifier, artworkURL, author, null);
   }
 }
