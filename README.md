@@ -42,7 +42,6 @@ plugins:
       applemusic: false # Enable Apple Music source
       deezer: false # Enable Deezer source
       yandexmusic: false # Enable Yandex Music source
-      sliderkz: false
       tidal: false
       flowerytts: false # Enable Flowery TTs source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
