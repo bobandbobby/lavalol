@@ -40,9 +40,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class AppleMusicSourceManager
   extends MirroringAudioSourceManager
   implements AudioSearchManager {
@@ -51,7 +48,6 @@ public class AppleMusicSourceManager
     "(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song|music-video)(/[a-zA-Z\\p{L}\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-\\.]+)(\\?i=(?<identifier2>\\d+))?"
   );
   public static final Pattern TOKEN_PATTERN = Pattern.compile("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ[^\"]+");
-  private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
   public static final String SEARCH_PREFIX = "amsearch:";
   public static final String PREVIEW_PREFIX = "amprev:";
   public static final long PREVIEW_LENGTH = 30000;
