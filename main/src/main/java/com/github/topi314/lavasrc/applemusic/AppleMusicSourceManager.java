@@ -227,10 +227,10 @@ public class AppleMusicSourceManager
           if (id2 == null || id2.isEmpty()) {
             return this.getAlbum(id, countryCode, preview);
           }
-          route = "songs";
+          route = "songs"; //ghetto ahhh code 
           return this.getSong(id2, countryCode, route, preview);
         case "music-video":
-          route = "music-videos";
+          route = "music-videos"; //ghetto ahhh code 
           return this.getSong(id, countryCode, route, preview);
         case "playlist":
           return this.getPlaylist(id, countryCode, preview);
@@ -685,7 +685,7 @@ public class AppleMusicSourceManager
     );
   }
 
-  public AudioItem getSong(String id, String countryCode, String route, boolean preview) throws IOException {
+  public AudioItem getSong(String id, String countryCode, String route, boolean preview) throws IOException { //ghetto ahhh code should prob do its method for the GetVideo
     var json = this.getJson(
         API_BASE +
         "catalog/" +
