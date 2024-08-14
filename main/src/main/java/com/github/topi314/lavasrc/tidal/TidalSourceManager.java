@@ -1,13 +1,10 @@
 package com.github.topi314.lavasrc.tidal;
 
-import com.github.topi314.lavasearch.AudioSearchManager;
-import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -36,7 +33,7 @@ import java.util.regex.Pattern;
 public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
     public static final Pattern URL_PATTERN = Pattern.compile(
-            "https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
+            "https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist|mix)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
 
     public static final String SEARCH_PREFIX = "tdsearch:";
     public static final String PUBLIC_API_BASE = "https://api.tidal.com/v1/";
@@ -44,7 +41,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
     public static final int ALBUM_MAX_PAGE_ITEMS = 120;
     private static final String USER_AGENT = "TIDAL/3704 CFNetwork/1220.1 Darwin/20.3.0";
     private static final String TIDAL_TOKEN = "i4ZDjcyhed7Mu47q";
-
     private static final Logger log = LoggerFactory.getLogger(TidalSourceManager.class);
 
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -87,6 +83,8 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
                 switch (type) {
                     case "album":
                         return getAlbumOrPlaylist(id, "album", ALBUM_MAX_PAGE_ITEMS);
+                    case "mix":
+                        return getMix(id);
                     case "track":
                         return getTrack(id);
                     case "playlist":
@@ -126,48 +124,34 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
         return tracks;
     }
 
-    private AudioItem getSearchWithRetry(String query, int maxRetries) throws IOException {
-        for (int retry = 0; retry <= maxRetries; retry++) {
-            try {
-                String apiUrl = PUBLIC_API_BASE +
-                        "search?query=" +
-                        URLEncoder.encode(query, StandardCharsets.UTF_8) +
-                        "&offset=0&limit=" +
-                        searchLimit +
-                        "&countryCode=" +
-                        countryCode;
-                var json = getApiResponse(apiUrl);
-
-                if (json.get("tracks").get("items").isNull()) {
-                    return AudioReference.NO_TRACK; // devo bullied me :(
-                }
-
-                var tracks = parseTracks(json.get("tracks").get("items"));
-
-                if (tracks.isEmpty()) {
-                    return AudioReference.NO_TRACK;
-                }
-
-                return new BasicAudioPlaylist("Tidal Music Search: " + query, tracks, null, true);
-            } catch (SocketTimeoutException e) {
-                if (retry == maxRetries) {
-                    return AudioReference.NO_TRACK;
-                }
-            }
-        }
-        return AudioReference.NO_TRACK;
-    }
-
     private AudioItem getSearch(String query) throws IOException {
-        int maxRetries = 2;
-        return getSearchWithRetry(query, maxRetries);
+        try {
+            String apiUrl = PUBLIC_API_BASE +
+                    "search?query=" +
+                    URLEncoder.encode(query, StandardCharsets.UTF_8) +
+                    "&offset=0&limit=" +
+                    searchLimit +
+                    "&countryCode=" +
+                    countryCode;
+            var json = getApiResponse(apiUrl);
+
+            if (json.get("tracks").get("items").isNull()) {
+                return AudioReference.NO_TRACK;
+            }
+
+            var tracks = parseTracks(json.get("tracks").get("items"));
+
+            if (tracks.isEmpty()) {
+                return AudioReference.NO_TRACK;
+            }
+
+            return new BasicAudioPlaylist("Tidal Music Search: " + query, tracks, null, true);
+        } catch (SocketTimeoutException e) {
+            return AudioReference.NO_TRACK;
+        }
     }
 
     private AudioTrack parseTrack(JsonBrowser audio) {
-        return newMethod(audio);
-    }
-
-    private AudioTrack newMethod(JsonBrowser audio) {
         var id = audio.get("id").text();
         var rawDuration = audio.get("duration").text();
 
@@ -178,7 +162,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 
         try {
             var duration = Long.parseLong(rawDuration) * 1000;
-
             var title = audio.get("title").text();
             var originalUrl = audio.get("url").text();
             var artistsArray = audio.get("artists");
@@ -208,7 +191,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 
     private AudioItem getAlbumOrPlaylist(String itemId, String type, int maxPageItems) throws IOException {
         try {
-            // Fetch tracks directly for albums
             String apiUrl = PUBLIC_API_BASE +
                     type +
                     "s/" +
@@ -233,10 +215,8 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
             String itemInfoUrl = "";
 
             if (type.equalsIgnoreCase("playlist")) {
-                // Fetch playlist information
                 itemInfoUrl = PUBLIC_API_BASE + "playlists/" + itemId + "?countryCode=" + countryCode;
             } else if (type.equalsIgnoreCase("album")) {
-                // Fetch album information
                 itemInfoUrl = PUBLIC_API_BASE + "albums/" + itemId + "?countryCode=" + countryCode;
             }
 
@@ -281,21 +261,42 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
         }
     }
 
+    public AudioItem getMix(String mixId) throws IOException {
+        try {
+            String apiUrl = PUBLIC_API_BASE + "mixes/" + mixId + "/items?countryCode=" + countryCode;
+            var json = getApiResponse(apiUrl);
+
+            if (json == null || json.get("items").isNull()) {
+                log.info("Mix not found for ID: {}", mixId);
+                return AudioReference.NO_TRACK;
+            }
+
+            var items = parseTrackItem(json);
+
+            if (items.isEmpty()) {
+                return AudioReference.NO_TRACK;
+            }
+
+            log.info("Mix loaded successfully for ID: {}", mixId);
+            return new BasicAudioPlaylist("Mix: " + mixId, items, null, false);
+        } catch (SocketTimeoutException e) {
+            log.error("Socket timeout while fetching track with ID: {}", mixId, e);
+            return AudioReference.NO_TRACK;
+        }
+    }
+
     private List<AudioTrack> parseTrackItem(JsonBrowser json) {
         var tracks = new ArrayList<AudioTrack>();
         var items = json.get("items");
 
         for (var audio : items.values()) {
-            var parsedTrack = parseItem(audio);
+            JsonBrowser item = audio.get("item").isNull() ? audio : audio.get("item");
+            var parsedTrack = parseTrack(item);
             if (parsedTrack != null) {
                 tracks.add(parsedTrack);
             }
         }
         return tracks;
-    }
-
-    private AudioTrack parseItem(JsonBrowser audio) {
-        return newMethod(audio);
     }
 
     @Override
