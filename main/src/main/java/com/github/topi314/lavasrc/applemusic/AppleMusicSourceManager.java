@@ -13,7 +13,6 @@ import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import java.io.DataInput;
@@ -45,7 +44,7 @@ public class AppleMusicSourceManager
   implements AudioSearchManager {
 
   public static final Pattern URL_PATTERN = Pattern.compile(
-    "(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song|music-video)(/[a-zA-Z\\p{L}\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-\\.]+)(\\?i=(?<identifier2>\\d+))?"
+          "(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song|music-video)(/[a-zA-Z\\p{L}\\d-]+)?/(?<identifier>[a-zA-Z\\d.-]+)(\\?i=(?<identifier2>\\d+))?"
   );
   public static final Pattern TOKEN_PATTERN = Pattern.compile("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ[^\"]+");
   public static final String SEARCH_PREFIX = "amsearch:";
@@ -73,20 +72,6 @@ public class AppleMusicSourceManager
   private String token;
   private String origin;
   private Instant tokenExpire;
-
-  public AppleMusicSourceManager(
-    String[] providers,
-    String mediaAPIToken,
-    String countryCode,
-    AudioPlayerManager audioPlayerManager
-  ) {
-    this(
-      mediaAPIToken,
-      countryCode,
-      unused -> audioPlayerManager,
-      new DefaultMirroringAudioTrackResolver(providers)
-    );
-  }
 
   public AppleMusicSourceManager(
     String[] providers,
@@ -764,6 +749,7 @@ public class AppleMusicSourceManager
     ) {
       artistUrl = null;
     }
+    var paramIndex = trackUrl.indexOf('?');
     return new AppleMusicAudioTrack(
       new AudioTrackInfo(
         attributes.get("name").text(),
@@ -778,7 +764,7 @@ public class AppleMusicSourceManager
       attributes.get("albumName").isNull() ? null : attributes.get("albumName").text(),
       // Apple doesn't give us the album url, however the track url is
       // /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
-      trackUrl.indexOf('?') == -1 ? null : trackUrl,
+            paramIndex == -1 ? null : trackUrl.substring(0, paramIndex),
       artistUrl,
       artistArtwork,
       attributes.get("previews").index(0).get("hlsUrl").text(),
@@ -818,7 +804,7 @@ public class AppleMusicSourceManager
     return url.substring(url.lastIndexOf('/') + 1);
   }
 
-  public static AppleMusicSourceManager fromMusicKitKey(
+  public static AppleMusicSourceManager fromMusicKitKey( // never used lmao
     String musicKitKey,
     String keyId,
     String teamId,
