@@ -24,7 +24,7 @@ Check out the example application file to understand the setup
 
 ```
 plugins:
-    - dependency: "com.github.Nansess.BaldMan-LavaSrc:baldman-plugin:master-SNAPSHOT"
+    - dependency: "com.github.Nansess.BaldMan-LavaSrc:baldman-plugin:x.y.z"
       repository: "https://jitpack.io"
 ```
 
