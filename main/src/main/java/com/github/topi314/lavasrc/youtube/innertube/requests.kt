@@ -1,44 +1,74 @@
 package com.github.topi314.lavasrc.youtube.innertube
 
 import kotlinx.serialization.Serializable
-import java.net.URI
-import java.util.*
-
-val youtubeMusic = URI("https://music.youtube.com")
-
-fun musicContext(locale: Locale): InnerTubeContext {
-    val safeLocale = locale.convertToISO()
-    return InnerTubeContext(
-        InnerTubeContext.Client(
-            "WEB_REMIX",
-            "1.20230102.01.00",
-            safeLocale.language,
-            safeLocale.country!!
-        )
-    )
-}
-
-private fun Locale.convertToISO(): Locale = when {
-    !country.isNullOrBlank() -> this
-    language == "cs" -> Locale(language, "CZ")
-    language == "da" -> Locale(language, "DK")
-    language == "el" -> Locale(language, "GR")
-    language == "hi" -> Locale(language, "IN")
-    language == "ja" -> Locale(language, "JP")
-    language == "uk" -> Locale(language, "UA")
-    language == "vi" -> Locale(language, "VN")
-    else -> Locale(language, language.uppercase(Locale.ENGLISH))
-}
 
 @Serializable
-data class InnerTubeContext(val client: Client) {
+data class SearchSuggestionsSectionRendererContent(
+    val searchSuggestionsSectionRenderer: InnerTubeBox<SearchSuggestionsRendererContent>,
+)
+
+@Serializable
+data class SearchSuggestionsRendererContent(
+    val searchSuggestionRenderer: SearchSuggestionsRenderer? = null,
+    val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null,
+)
+
+@Serializable
+data class SearchSuggestionsRenderer(val suggestion: Suggestion) {
     @Serializable
-    data class Client(val clientName: String, val clientVersion: String, val hl: String = "en", val gl: String = "US")
+    data class Suggestion(val runs: List<Run> = emptyList()) {
+        @Serializable
+        data class Run(val text: String, val bold: Boolean = false)
+
+        fun joinRuns() = runs.joinToString("", transform = Run::text)
+    }
 }
 
 @Serializable
-data class MusicSearchRequest(override val context: InnerTubeContext, val input: String) : InnerTubeRequest
+data class MusicResponsiveListItemRenderer(
+    val navigationEndpoint: NavigationEndpoint,
+    val thumbnail: Thumbnail,
+    val flexColumns: List<FlexColumn>,
+) {
+    @Serializable
+    data class NavigationEndpoint(
+        val browseEndpoint: BrowseEndpoint? = null,
+        val watchEndpoint: WatchEndpoint? = null,
+    ) {
+        @Serializable
+        data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: Configs) {
+            @Serializable
+            data class Configs(val browseEndpointContextMusicConfig: Config) {
+                @Serializable
+                data class Config(val pageType: Type) {
+                    @Serializable
+                    enum class Type {
+                        MUSIC_PAGE_TYPE_ARTIST,
+                        MUSIC_PAGE_TYPE_PLAYLIST
+                    }
+                }
+            }
+        }
 
-interface InnerTubeRequest {
-    val context: InnerTubeContext
+        @Serializable
+        data class WatchEndpoint(val videoId: String)
+    }
+
+    @Serializable
+    data class Thumbnail(val musicThumbnailRenderer: MusicThumbnailRenderer) {
+        @Serializable
+        data class MusicThumbnailRenderer(val thumbnail: ThumbnailList) {
+            @Serializable
+            data class ThumbnailList(val thumbnails: List<Entry>) {
+                @Serializable
+                data class Entry(val url: String)
+            }
+        }
+    }
+
+    @Serializable
+    data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer) {
+        @Serializable
+        data class MusicResponsiveListItemFlexColumnRenderer(val text: SearchSuggestionsRenderer.Suggestion)
+    }
 }
