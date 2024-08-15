@@ -8,11 +8,12 @@ import com.github.topi314.lavasearch.result.BasicAudioText
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
+import dev.lavalink.youtube.YoutubeAudioSourceManager
+import dev.lavalink.youtube.track.YoutubeAudioTrack
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer.NavigationEndpoint.BrowseEndpoint.Configs.Config.Type as PageType
@@ -21,7 +22,7 @@ private val searchPattern = """\["([\w\s]+)",\s*\d+,\s*\[(?:\d+,?\s*)+]""".toReg
 
 private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
     browseEndpoint != null -> when (browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType) {
-        PageType.MUSIC_PAGE_TYPE_ALBUM -> "https://music.youtube.com/browse/${browseEndpoint.browseId}"
+        PageType.MUSIC_PAGE_TYPE_PLAYLIST, PageType.MUSIC_PAGE_TYPE_ALBUM -> "https://music.youtube.com/browse/${browseEndpoint.browseId}"
         PageType.MUSIC_PAGE_TYPE_ARTIST -> "https://music.youtube.com/channel/${browseEndpoint.browseId}"
     }
 
@@ -30,7 +31,7 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
 }
 
 class YoutubeSearchManager(
-    private val sourceManager: () -> YoutubeAudioSourceManager
+    private val playerManager: () -> AudioPlayerManager
 ) : AudioSearchManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
@@ -38,6 +39,7 @@ class YoutubeSearchManager(
         val SEARCH_TYPES = setOf(
             AudioSearchResult.Type.ALBUM,
             AudioSearchResult.Type.ARTIST,
+            AudioSearchResult.Type.PLAYLIST,
             AudioSearchResult.Type.TRACK,
             AudioSearchResult.Type.TEXT
         )
@@ -72,7 +74,7 @@ class YoutubeSearchManager(
                     val url = item.navigationEndpoint.toUrl()
                     val artist = item.flexColumns.getOrNull(1)
                         ?.musicResponsiveListItemFlexColumnRenderer
-                        ?.text?.joinRuns() ?: "Unknown Author"
+                        ?.text?.runs?.getOrNull(2)?.text ?: "Unknown Author"
                     if (item.navigationEndpoint.watchEndpoint != null) {
                         val info = AudioTrackInfo(
                             item.flexColumns.first().musicResponsiveListItemFlexColumnRenderer.text.joinRuns(),
@@ -84,7 +86,7 @@ class YoutubeSearchManager(
                             thumbnail,
                             null
                         )
-                        YoutubeAudioTrack(info, sourceManager())
+                        YoutubeAudioTrack(info, playerManager().source(YoutubeAudioSourceManager::class.java))
                     } else if (item.navigationEndpoint.browseEndpoint != null) {
                         val type =
                             item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType
@@ -109,6 +111,16 @@ class YoutubeSearchManager(
                                 artist,
                                 null
                             )
+
+                            PageType.MUSIC_PAGE_TYPE_PLAYLIST -> ExtendedAudioPlaylist(
+                                name,
+                                emptyList(),
+                                ExtendedAudioPlaylist.Type.PLAYLIST,
+                                url,
+                                thumbnail,
+                                artist,
+                                null
+                            )
                         }
                     } else {
                         null
@@ -123,7 +135,7 @@ class YoutubeSearchManager(
             items.filter<AudioTrack>(AudioSearchResult.Type.TRACK in finalTypes),
             items.filter(AudioSearchResult.Type.ALBUM in finalTypes, ExtendedAudioPlaylist.Type.ALBUM),
             items.filter(AudioSearchResult.Type.ARTIST in finalTypes, ExtendedAudioPlaylist.Type.ARTIST),
-            emptyList(),
+            items.filter(AudioSearchResult.Type.PLAYLIST in finalTypes, ExtendedAudioPlaylist.Type.PLAYLIST),
             items.filter<AudioText>(AudioSearchResult.Type.TEXT in finalTypes),
         )
     }
