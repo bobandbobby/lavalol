@@ -24,7 +24,7 @@ Check out the example application file to understand the setup
 
 ```
 plugins:
-    - dependency: "com.github.Nansess.BaldMan-LavaSrc:baldman-plugin:master-SNAPSHOT"
+    - dependency: "com.github.Nansess.BaldMan-LavaSrc:baldman-plugin:x.y.z"
       repository: "https://jitpack.io"
 ```
 
@@ -42,7 +42,6 @@ plugins:
       applemusic: false # Enable Apple Music source
       deezer: false # Enable Deezer source
       yandexmusic: false # Enable Yandex Music source
-      sliderkz: false
       tidal: false
       flowerytts: false # Enable Flowery TTs source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
@@ -54,6 +53,9 @@ plugins:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 300 tracks each
       albumLoadLimit: 6 # The number of pages at 300 tracks each
+    tidal:
+      countryCode: "US"
+      searchLimit: 6
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
     flowerytts:
