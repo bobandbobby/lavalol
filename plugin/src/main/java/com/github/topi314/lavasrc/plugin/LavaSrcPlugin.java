@@ -8,7 +8,7 @@ import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
-import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
+// import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -30,28 +30,27 @@ public class LavaSrcPlugin
   private DeezerAudioSourceManager deezer;
   private YandexMusicSourceManager yandexMusic;
   private FloweryTTSSourceManager flowerytts;
-  private YoutubeSearchManager youtube;
+ // private YoutubeSearchManager youtube;
   private TidalSourceManager tidal;
 
   public LavaSrcPlugin(
-    LavaSrcConfig pluginConfig,
-    SourcesConfig sourcesConfig,
-    SpotifyConfig spotifyConfig,
-    TidalConfig tidalConfig,
-    AppleMusicConfig appleMusicConfig,
-    DeezerConfig deezerConfig,
-    YandexMusicConfig yandexMusicConfig,
-    FloweryTTSConfig floweryTTSConfig
-    ) {
+          LavaSrcConfig pluginConfig,
+          SourcesConfig sourcesConfig,
+          SpotifyConfig spotifyConfig,
+          TidalConfig tidalConfig,
+          AppleMusicConfig appleMusicConfig,
+          YandexMusicConfig yandexMusicConfig,
+          FloweryTTSConfig floweryTTSConfig
+  ) {
     log.info("Loading BaldMan LavaSrc...");
 
     if (sourcesConfig.isSpotify()) {
       this.spotify =
-        new SpotifySourceManager(
-          pluginConfig.getProviders(),
-          spotifyConfig.getCountryCode(),
-          unused -> manager
-        );
+              new SpotifySourceManager(
+                      pluginConfig.getProviders(),
+                      spotifyConfig.getCountryCode(),
+                      unused -> manager
+              );
       if (spotifyConfig.getPlaylistLoadLimit() > 0) {
         this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
       }
@@ -61,26 +60,26 @@ public class LavaSrcPlugin
     }
     if (sourcesConfig.isTidal()) {
       this.tidal =
-        new TidalSourceManager(
-          pluginConfig.getProviders(),
-          tidalConfig.getCountryCode(),
-          unused -> manager
-        );
+              new TidalSourceManager(
+                      pluginConfig.getProviders(),
+                      tidalConfig.getCountryCode(),
+                      unused -> manager
+              );
       if (tidalConfig.getSearchLimit() > 0) {
         this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
       }
     }
     if (sourcesConfig.isAppleMusic()) {
       this.appleMusic =
-        new AppleMusicSourceManager(
-          pluginConfig.getProviders(),
-          appleMusicConfig.getMediaAPIToken(),
-          appleMusicConfig.getCountryCode(),
-          unused -> manager
-        );
+              new AppleMusicSourceManager(
+                      pluginConfig.getProviders(),
+                      appleMusicConfig.getMediaAPIToken(),
+                      appleMusicConfig.getCountryCode(),
+                      unused -> manager
+              );
       if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
         appleMusic.setPlaylistPageLimit(
-          appleMusicConfig.getPlaylistLoadLimit()
+                appleMusicConfig.getPlaylistLoadLimit()
         );
       }
       if (appleMusicConfig.getAlbumLoadLimit() > 0) {
@@ -92,11 +91,11 @@ public class LavaSrcPlugin
     }
     if (sourcesConfig.isYandexMusic()) {
       this.yandexMusic =
-        new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
+              new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
     }
     if (sourcesConfig.isFloweryTTS()) {
       this.flowerytts =
-        new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
+              new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
       if (floweryTTSConfig.getTranslate()) {
         this.flowerytts.setTranslate(floweryTTSConfig.getTranslate());
       }
@@ -110,24 +109,28 @@ public class LavaSrcPlugin
         this.flowerytts.setAudioFormat(floweryTTSConfig.getAudioFormat());
       }
     }
-		if (sourcesConfig.isYoutube()) {
-			if (hasNewYoutubeSource()) {
-				log.info("Registering Youtube Source audio source manager...");
-				this.youtube = new YoutubeSearchManager(() -> manager);
-			} else {
-				throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
-			}
-		}
-	}
+    /*
+    if (sourcesConfig.isYoutube()) {
+      if (hasNewYoutubeSource()) {
+        log.info("Registering Youtube Source audio source manager...");
+        this.youtube = new YoutubeSearchManager(() -> manager);
+      } else {
+        throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
+      }
+    }
+    */
+  }
 
-	private boolean hasNewYoutubeSource() {
-		try {
-			Class.forName("dev.lavalink.youtube.YoutubeAudioSourceManager");
-			return true;
-		} catch (ClassNotFoundException ignored) {
-			return false;
-		}
-	}
+  /*
+  private boolean hasNewYoutubeSource() {
+    try {
+      Class.forName("dev.lavalink.youtube.YoutubeAudioSourceManager");
+      return true;
+    } catch (ClassNotFoundException ignored) {
+      return false;
+    }
+  }
+  */
 
   @NotNull
   @Override
@@ -175,10 +178,12 @@ public class LavaSrcPlugin
       log.info("Registering Deezer search manager...");
       manager.registerSearchManager(this.deezer);
     }
+    /*
     if (this.youtube != null) {
       log.info("Registering Youtube search manager...");
       manager.registerSearchManager(this.youtube);
     }
+    */
     return manager;
   }
 }
