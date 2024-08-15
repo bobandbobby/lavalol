@@ -1,4 +1,4 @@
-````````````````````````````````````plugins {
+plugins {
     id "dev.arbjerg.lavalink.gradle-plugin" version "1.0.15"
 }
 
