@@ -15,13 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class MirroringAudioSourceManager
-  extends ExtendedAudioSourceManager
-  implements HttpConfigurable {
+        extends ExtendedAudioSourceManager
+        implements HttpConfigurable {
 
   public static final String ISRC_PATTERN = "%ISRC%";
   public static final String QUERY_PATTERN = "%QUERY%";
   private static final Logger log = LoggerFactory.getLogger(
-    MirroringAudioSourceManager.class
+          MirroringAudioSourceManager.class
   );
   protected final Function<Void, AudioPlayerManager> audioPlayerManager;
   protected final MirroringAudioTrackResolver resolver;
@@ -29,15 +29,15 @@ public abstract class MirroringAudioSourceManager
   protected final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
   protected MirroringAudioSourceManager(
-    AudioPlayerManager audioPlayerManager,
-    MirroringAudioTrackResolver resolver
+          AudioPlayerManager audioPlayerManager,
+          MirroringAudioTrackResolver resolver
   ) {
     this(unused -> audioPlayerManager, resolver);
   }
 
   protected MirroringAudioSourceManager(
-    Function<Void, AudioPlayerManager> audioPlayerManager,
-    MirroringAudioTrackResolver resolver
+          Function<Void, AudioPlayerManager> audioPlayerManager,
+          MirroringAudioTrackResolver resolver
   ) {
     this.audioPlayerManager = audioPlayerManager;
     this.resolver = resolver;
@@ -45,7 +45,7 @@ public abstract class MirroringAudioSourceManager
 
   @Override
   public void configureRequests(
-    Function<RequestConfig, RequestConfig> configurator
+          Function<RequestConfig, RequestConfig> configurator
   ) {
     this.httpInterfaceManager.configureRequests(configurator);
   }

@@ -5,4 +5,4 @@ import java.util.function.Function;
 
 @FunctionalInterface
 public interface MirroringAudioTrackResolver
-  extends Function<MirroringAudioTrack, AudioItem> {}
+        extends Function<MirroringAudioTrack, AudioItem> {}
